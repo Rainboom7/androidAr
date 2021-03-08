@@ -1,14 +1,14 @@
 package com.example.myapplication;
 
 
-import androidx.annotation.RequiresApi;
-import androidx.appcompat.app.AppCompatActivity;
-
 import android.Manifest;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.os.Bundle;
 import android.widget.Toast;
+
+import androidx.annotation.RequiresApi;
+import androidx.appcompat.app.AppCompatActivity;
 
 import com.google.ar.core.AugmentedImage;
 import com.google.ar.core.AugmentedImageDatabase;
@@ -34,24 +34,24 @@ import com.karumi.dexter.listener.single.PermissionListener;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Collection;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 @RequiresApi(api = 30)
 public class MainActivity extends AppCompatActivity implements Scene.OnUpdateListener {
     private ArSceneView arSceneView;
     private Session session;
     private boolean shouldConfigureSession = false;
-    private Map<String, Integer> imagesModel = new HashMap<>();
+    private ConcurrentHashMap<String, Integer> imagesModel = new ConcurrentHashMap<>();
     private ImageSetterUtil imageSetterUtil = new ImageSetterUtil();
     private static String DEFAULT_SUFFIX = "_qrcode.png";
     private static String DEFAULT_PEFIX = "qr/";
-    private ArNode trackingNode;
+    private static Float ACCEPTABLE_DISTANCE = 0.1f;
+    private volatile ArNode trackingNode = null;
 
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
-        imagesModel = imageSetterUtil.getModelsMap();
+        imagesModel = new ConcurrentHashMap<>(imageSetterUtil.getModelsMap());
 
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
@@ -161,35 +161,46 @@ public class MainActivity extends AppCompatActivity implements Scene.OnUpdateLis
                 frame.getUpdatedTrackables(AugmentedImage.class);
         for (AugmentedImage img : updateAugmeneteImg
         ) {
-            if (img.getTrackingState() == TrackingState.TRACKING) {
-                if (trackingNode == null || !trackingNode.getImage().getName().equals(img.getName()))
+            System.out.println(arSceneView.getScene().getChildren());
+            if (img.getTrackingState() == TrackingState.TRACKING && trackingNode == null) {
+                if (img.getTrackingMethod() == AugmentedImage.TrackingMethod.FULL_TRACKING)
                     setModel(img);
-            } else if (img.getTrackingState() == TrackingState.PAUSED||
-                    img.getTrackingState() ==  TrackingState.STOPPED) {
-                System.out.println("state"+img.getTrackingState());
-                removeModel();
+            } else if (img.getTrackingMethod() == AugmentedImage.TrackingMethod.LAST_KNOWN_POSE ||
+                    img.getTrackingMethod() == AugmentedImage.TrackingMethod.NOT_TRACKING) {
+                if (trackingNode != null) {
+                    removeModel(img);
+                }
+
             }
         }
 
     }
 
-    private void removeModel() {
-        if (trackingNode != null) {
-            trackingNode.detach();
+
+    private void removeModel(AugmentedImage augmentedImage) {
+        if (trackingNode.getImage().getName().equals(augmentedImage.getName())) {
             arSceneView.getScene().removeChild(trackingNode);
+            trackingNode.detach();
             trackingNode = null;
         }
     }
+
 
     private void setModel(AugmentedImage image) {
         System.out.println("caught:" + image.getName());
         String imgName = image.getName();
         if (imagesModel.containsKey(imgName)) {
-            removeModel();
+            System.out.println("modelId:" + imagesModel.get(imgName));
             ArNode arNode = new ArNode(this, imagesModel.get(imgName));
+
             arNode.setImage(image);
-            arSceneView.getScene().addChild(arNode);
+            if (!arSceneView.getScene().getChildren().contains(arNode)) {
+                System.out.println("adding:" + arNode.getImage().getName());
+                arSceneView.getScene().addChild(arNode);
+
+            }
             trackingNode = arNode;
+            System.out.println(arNode);
         }
     }
 

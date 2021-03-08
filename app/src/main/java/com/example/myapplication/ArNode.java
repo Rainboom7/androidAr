@@ -3,6 +3,7 @@ package com.example.myapplication;
 import android.content.Context;
 import android.net.Uri;
 
+import com.google.ar.core.Anchor;
 import com.google.ar.core.AugmentedImage;
 import com.google.ar.core.Pose;
 import com.google.ar.sceneform.AnchorNode;
@@ -11,19 +12,47 @@ import com.google.ar.sceneform.math.Quaternion;
 import com.google.ar.sceneform.math.Vector3;
 import com.google.ar.sceneform.rendering.ModelRenderable;
 
+import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 
 public class ArNode extends AnchorNode {
     private AugmentedImage image;
-    private static CompletableFuture<ModelRenderable> renderableCompletableFuture;
+    private CompletableFuture<ModelRenderable> renderableCompletableFuture;
     private Node node;
+    private Anchor anchor;
 
     public ArNode(Context context, int modelId) {
-        if (renderableCompletableFuture == null)
-            renderableCompletableFuture = ModelRenderable.builder()
-                    .setRegistryId("model")
-                    .setSource(context, modelId)
-                    .build();
+        renderableCompletableFuture = ModelRenderable.builder()
+                .setRegistryId("model")
+                .setSource(context, modelId)
+                .build();
+    }
+
+    @Override
+    public String toString() {
+        return "ArNode{" +
+                "image=" + image.getName() +
+                ", node=" + node +
+                "image_method=" + image.getTrackingMethod() +
+
+                '}';
+    }
+
+    public Node getNode() {
+        return node;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        ArNode other = (ArNode) o;
+        return image.getName().equals(((ArNode) o).getImage().getName());
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(image.getName());
     }
 
     public void setImage(final AugmentedImage image) {
@@ -34,19 +63,21 @@ public class ArNode extends AnchorNode {
                 return null;
             });
         }
-        setAnchor(image.createAnchor(image.getCenterPose()));
+        anchor = image.createAnchor(image.getCenterPose());
+        setAnchor(anchor);
 
         node = new Node();
         Pose pose = Pose.makeTranslation(0, 0, 0);
         node.setParent(this);
         node.setLocalPosition(new Vector3(pose.tx(), pose.ty(), pose.tz()));
-        node.setLocalRotation(new Quaternion(pose.qx(), pose.qy(), pose.qz(), pose.qw()));
-        node.setLocalScale(new Vector3(0.1f,01.f,0.1f));
+        node.setLocalRotation(new Quaternion((float) (pose.qx()-3*Math.PI/2), pose.qy(), pose.qz(), pose.qw()));
+        node.setLocalScale(new Vector3(0.4f, 0.2f, 0.1f));
         node.setRenderable(renderableCompletableFuture.getNow(null));
     }
-    public void detach(){
-        node.setParent(null);
 
+    public void detach() {
+        node.setParent(null);
+        node.setRenderable(null);
     }
 
     public AugmentedImage getImage() {
