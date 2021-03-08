@@ -38,25 +38,13 @@ dependencies {
 }
 
 
-sceneform.asset('sampledata/deer.obj',
-        'default',
-        'sampledata/deer.sfa',
-        'src/main/assets/deer')
 
-sceneform.asset('sampledata/deer.obj',
-        'default',
-        'sampledata/deer.sfa',
-        'src/main/res/raw/deer')
 
 sceneform.asset('sampledata/Camera_01.FBX',
         'default',
         'sampledata/Camera_01.sfa',
         'src/main/assets/Camera_01')
 
-sceneform.asset('sampledata/butterfly.fbx',
-        'default',
-        'sampledata/butterfly.sfa',
-        'src/main/assets/butterfly')
 
 
 
@@ -64,3 +52,13 @@ sceneform.asset('sampledata/plant.fbx',
         'default',
         'sampledata/plant.sfa',
         'src/main/assets/plant')
+
+sceneform.asset('sampledata/clock.fbx',
+        'default',
+        'sampledata/clock.sfa',
+        'src/main/assets/clock')
+
+sceneform.asset('sampledata/ukulele.fbx',
+        'default',
+        'sampledata/ukulele.sfa',
+        'src/main/assets/ukulele')

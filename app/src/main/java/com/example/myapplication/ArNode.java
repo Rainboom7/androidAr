@@ -71,20 +71,36 @@ public class ArNode extends AnchorNode {
         node.setParent(this);
         node.setLocalPosition(new Vector3(pose.tx(), pose.ty(), pose.tz()));
         node.setLocalRotation(new Quaternion((float) (pose.qx() - 3 * Math.PI / 2), pose.qy(), pose.qz(), pose.qw()));
-        node.setLocalScale(new Vector3(0.4f, 0.2f, 0.1f));
+        node.setLocalScale(new Vector3(0.1f, 0.1f, 0.1f));
         node.setRenderable(renderableCompletableFuture.getNow(null));
     }
 
     public void rotate(float dx, float dy) {
+        float kx = Math.abs(dx / 200);
+        float ky = Math.abs(dy / 200);
         if (node != null) {
-            Quaternion rotationX= new Quaternion(Vector3.right(),dx);
-            Quaternion rotationY = new Quaternion(Vector3.up(),dy);
-            Quaternion rotated = Quaternion.multiply(node.getLocalRotation(),rotationX);
-            rotated=Quaternion.multiply(rotated,rotationY);
-            Quaternion localRotation = node.getLocalRotation();
+            Quaternion rotationX = dx > 0 ?
+                    new Quaternion(Vector3.right(), kx)
+                    : new Quaternion(Vector3.left(), kx);
+            Quaternion rotationY = dy > 0 ?
+                    new Quaternion(Vector3.up(), ky)
+                    : new Quaternion(Vector3.down(), ky);
+            Quaternion rotated = Quaternion.multiply(rotationX, rotationY);
+            rotated = Quaternion.multiply(rotated, node.getLocalRotation());
             node.setLocalRotation(rotated);
 
         }
+    }
+
+    public void scale(float k) {
+        float local_k = k/10000;
+        if (node != null) {
+            Vector3 localScale = node.getLocalScale();
+            node.setLocalScale(new Vector3(localScale.x + local_k,
+                    localScale.y + local_k, localScale.z +local_k));
+
+        }
+
     }
 
     public void detach() {

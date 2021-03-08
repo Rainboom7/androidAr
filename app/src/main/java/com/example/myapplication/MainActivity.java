@@ -159,20 +159,60 @@ public class MainActivity extends AppCompatActivity implements Scene.OnUpdateLis
 
     @Override
     public boolean dispatchTouchEvent(MotionEvent event) {
-        float x = event.getX();
-        float y = event.getY();
 
-        if (event.getAction() == MotionEvent.ACTION_MOVE) {
-            applyRotation(x - prev_x, y - prev_y);
-            prev_x=x;
-            prev_y=y;
+        if (event.getPointerCount() > 1) {
+            float x_1 = event.getX(0);
+            float x_2 = event.getX(1);
+            float y_1 = event.getY(0);
+            float y_2 = event.getY(1);
+            applyScaling(x_1, y_1, x_2, y_2, event);
+
+
+        } else if (event.getAction() == MotionEvent.ACTION_MOVE) {
+            float x = event.getX();
+            float y = event.getY();
+            applyRotation(x - prev_x, y - prev_y, event);
+
         }
         return true;
     }
 
-    private void applyRotation(float x, float y) {
+    private void applyRotation(float x, float y, MotionEvent event) {
+        prev_x = x;
+        prev_y = y;
+        if (event.getHistorySize() > 0) {
+            prev_x = event.getHistoricalX(event.getHistorySize() - 1);
+            prev_y = event.getHistoricalY(event.getHistorySize() - 1);
+        }
+
+        float dx = x - prev_x;
+        float dy = y - prev_y;
         if (trackingNode != null)
-            trackingNode.rotate(x, y);
+            trackingNode.rotate(dx, dy);
+        prev_x = x;
+        prev_y = y;
+    }
+
+    private void applyScaling(float x1, float y1, float x2, float y2, MotionEvent event) {
+        float prev_1_x = x1;
+        float prev_2_x = x2;
+        float prev_1_y = y1;
+        float prev_2_y = y2;
+        if (event.getHistorySize() > 0) {
+            prev_1_x = event.getHistoricalX(0, event.getHistorySize() - 1);
+            prev_2_x = event.getHistoricalX(1, event.getHistorySize() - 1);
+            prev_1_y = event.getHistoricalY(0, event.getHistorySize() - 1);
+            prev_2_y = event.getHistoricalY(1, event.getHistorySize() - 1);
+
+        }
+
+
+        if (trackingNode != null) {
+            double prev_k = Math.sqrt(Math.pow(prev_1_x - prev_2_x, 2) + Math.pow(prev_1_y - prev_2_y, 2));
+            double k = Math.sqrt(Math.pow(x1 - x2, 2) + Math.pow(y1 - y2, 2));
+            trackingNode.scale((float) (k - prev_k));
+
+        }
     }
 
 
