@@ -5,6 +5,7 @@ import android.Manifest;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.os.Bundle;
+import android.view.MotionEvent;
 import android.widget.Toast;
 
 import androidx.annotation.RequiresApi;
@@ -47,6 +48,8 @@ public class MainActivity extends AppCompatActivity implements Scene.OnUpdateLis
     private static String DEFAULT_PEFIX = "qr/";
     private static Float ACCEPTABLE_DISTANCE = 0.1f;
     private volatile ArNode trackingNode = null;
+    private float prev_x = 0;
+    private float prev_y = 0;
 
 
     @Override
@@ -155,13 +158,31 @@ public class MainActivity extends AppCompatActivity implements Scene.OnUpdateLis
     }
 
     @Override
+    public boolean dispatchTouchEvent(MotionEvent event) {
+        float x = event.getX();
+        float y = event.getY();
+
+        if (event.getAction() == MotionEvent.ACTION_MOVE) {
+            applyRotation(x - prev_x, y - prev_y);
+            prev_x=x;
+            prev_y=y;
+        }
+        return true;
+    }
+
+    private void applyRotation(float x, float y) {
+        if (trackingNode != null)
+            trackingNode.rotate(x, y);
+    }
+
+
+    @Override
     public void onUpdate(FrameTime frameTime) {
         Frame frame = arSceneView.getArFrame();
         Collection<AugmentedImage> updateAugmeneteImg =
                 frame.getUpdatedTrackables(AugmentedImage.class);
         for (AugmentedImage img : updateAugmeneteImg
         ) {
-            System.out.println(arSceneView.getScene().getChildren());
             if (img.getTrackingState() == TrackingState.TRACKING && trackingNode == null) {
                 if (img.getTrackingMethod() == AugmentedImage.TrackingMethod.FULL_TRACKING)
                     setModel(img);
@@ -170,7 +191,6 @@ public class MainActivity extends AppCompatActivity implements Scene.OnUpdateLis
                 if (trackingNode != null) {
                     removeModel(img);
                 }
-
             }
         }
 
@@ -237,5 +257,8 @@ public class MainActivity extends AppCompatActivity implements Scene.OnUpdateLis
             arSceneView.pause();
             session.pause();
         }
+
     }
+
+
 }

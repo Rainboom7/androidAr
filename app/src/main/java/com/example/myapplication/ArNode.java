@@ -70,9 +70,21 @@ public class ArNode extends AnchorNode {
         Pose pose = Pose.makeTranslation(0, 0, 0);
         node.setParent(this);
         node.setLocalPosition(new Vector3(pose.tx(), pose.ty(), pose.tz()));
-        node.setLocalRotation(new Quaternion((float) (pose.qx()-3*Math.PI/2), pose.qy(), pose.qz(), pose.qw()));
+        node.setLocalRotation(new Quaternion((float) (pose.qx() - 3 * Math.PI / 2), pose.qy(), pose.qz(), pose.qw()));
         node.setLocalScale(new Vector3(0.4f, 0.2f, 0.1f));
         node.setRenderable(renderableCompletableFuture.getNow(null));
+    }
+
+    public void rotate(float dx, float dy) {
+        if (node != null) {
+            Quaternion rotationX= new Quaternion(Vector3.right(),dx);
+            Quaternion rotationY = new Quaternion(Vector3.up(),dy);
+            Quaternion rotated = Quaternion.multiply(node.getLocalRotation(),rotationX);
+            rotated=Quaternion.multiply(rotated,rotationY);
+            Quaternion localRotation = node.getLocalRotation();
+            node.setLocalRotation(rotated);
+
+        }
     }
 
     public void detach() {
