@@ -50,6 +50,8 @@ public class MainActivity extends AppCompatActivity implements Scene.OnUpdateLis
     private volatile ArNode trackingNode = null;
     private float prev_x = 0;
     private float prev_y = 0;
+    private float dx = 0;
+    private float dy = 0;
 
 
     @Override
@@ -168,29 +170,31 @@ public class MainActivity extends AppCompatActivity implements Scene.OnUpdateLis
             applyScaling(x_1, y_1, x_2, y_2, event);
 
 
-        } else if (event.getAction() == MotionEvent.ACTION_MOVE) {
-            float x = event.getX();
-            float y = event.getY();
-            applyRotation(x - prev_x, y - prev_y, event);
+        } else {
+            switch (event.getAction()) {
+                case MotionEvent.ACTION_DOWN:
+                    prev_x = event.getRawX();
+                    prev_y = event.getRawY();
+                    break;
+                case MotionEvent.ACTION_MOVE:
+                    dx = event.getRawX() - prev_x;
+                    dy = event.getRawY() - prev_y;
+                    applyRotation(dx, dy);
+                default:
+                    break;
+
+            }
+
 
         }
         return true;
     }
 
-    private void applyRotation(float x, float y, MotionEvent event) {
-        prev_x = x;
-        prev_y = y;
-        if (event.getHistorySize() > 0) {
-            prev_x = event.getHistoricalX(event.getHistorySize() - 1);
-            prev_y = event.getHistoricalY(event.getHistorySize() - 1);
-        }
-
-        float dx = x - prev_x;
-        float dy = y - prev_y;
+    private void applyRotation(float x, float y) {
         if (trackingNode != null)
             trackingNode.rotate(dx, dy);
-        prev_x = x;
-        prev_y = y;
+
+
     }
 
     private void applyScaling(float x1, float y1, float x2, float y2, MotionEvent event) {

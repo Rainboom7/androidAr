@@ -76,28 +76,22 @@ public class ArNode extends AnchorNode {
     }
 
     public void rotate(float dx, float dy) {
-        float kx = Math.abs(dx / 200);
-        float ky = Math.abs(dy / 200);
-        if (node != null) {
-            Quaternion rotationX = dx > 0 ?
-                    new Quaternion(Vector3.right(), kx)
-                    : new Quaternion(Vector3.left(), kx);
-            Quaternion rotationY = dy > 0 ?
-                    new Quaternion(Vector3.up(), ky)
-                    : new Quaternion(Vector3.down(), ky);
-            Quaternion rotated = Quaternion.multiply(rotationX, rotationY);
-            rotated = Quaternion.multiply(rotated, node.getLocalRotation());
-            node.setLocalRotation(rotated);
 
-        }
+        float kx = dx / 50;
+        float ky = dy / 50;
+        Quaternion q1 = node.getLocalRotation();
+        Quaternion q2 = Quaternion.axisAngle(new Vector3(0f, 1f, 0f), ky);
+        Quaternion q3 = Quaternion.axisAngle(new Vector3(1f, 0f, 0f), kx);
+        node.setLocalRotation(Quaternion.multiply(Quaternion.multiply(q1, q2), q3));
     }
 
+
     public void scale(float k) {
-        float local_k = k/10000;
+        float local_k = k / 10000;
         if (node != null) {
             Vector3 localScale = node.getLocalScale();
             node.setLocalScale(new Vector3(localScale.x + local_k,
-                    localScale.y + local_k, localScale.z +local_k));
+                    localScale.y + local_k, localScale.z + local_k));
 
         }
 
