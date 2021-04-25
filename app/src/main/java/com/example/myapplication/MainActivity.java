@@ -15,6 +15,7 @@ import com.google.ar.core.AugmentedImage;
 import com.google.ar.core.AugmentedImageDatabase;
 import com.google.ar.core.Config;
 import com.google.ar.core.Frame;
+import com.google.ar.core.Pose;
 import com.google.ar.core.Session;
 import com.google.ar.core.TrackingState;
 import com.google.ar.core.exceptions.CameraNotAvailableException;
@@ -57,7 +58,6 @@ public class MainActivity extends AppCompatActivity implements Scene.OnUpdateLis
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         imagesModel = new ConcurrentHashMap<>(imageSetterUtil.getModelsMap());
-
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
@@ -81,7 +81,8 @@ public class MainActivity extends AppCompatActivity implements Scene.OnUpdateLis
                     }
 
                     @Override
-                    public void onPermissionRationaleShouldBeShown(PermissionRequest permission, PermissionToken token) {
+                    public void onPermissionRationaleShouldBeShown(PermissionRequest permission,
+                                                                   PermissionToken token) {
 
                     }
                 }).check();
@@ -192,7 +193,7 @@ public class MainActivity extends AppCompatActivity implements Scene.OnUpdateLis
 
     private void applyRotation(float x, float y) {
         if (trackingNode != null)
-            trackingNode.rotate(dx, dy);
+            trackingNode.rotate(x, y);
 
 
     }
@@ -212,7 +213,8 @@ public class MainActivity extends AppCompatActivity implements Scene.OnUpdateLis
 
 
         if (trackingNode != null) {
-            double prev_k = Math.sqrt(Math.pow(prev_1_x - prev_2_x, 2) + Math.pow(prev_1_y - prev_2_y, 2));
+            double prev_k = Math.sqrt(Math.pow(prev_1_x - prev_2_x, 2)
+                    + Math.pow(prev_1_y - prev_2_y, 2));
             double k = Math.sqrt(Math.pow(x1 - x2, 2) + Math.pow(y1 - y2, 2));
             trackingNode.scale((float) (k - prev_k));
 

@@ -38,15 +38,10 @@ dependencies {
 }
 
 
-
-
 sceneform.asset('sampledata/Camera_01.FBX',
         'default',
         'sampledata/Camera_01.sfa',
         'src/main/assets/Camera_01')
-
-
-
 
 sceneform.asset('sampledata/plant.fbx',
         'default',
